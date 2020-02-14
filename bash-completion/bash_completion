@@ -1,0 +1,15 @@
+completions_directory=./completions
+
+if [[ $BASH_SOURCE == */* ]]; then
+    completions_directory="${BASH_SOURCE%/*}/completions"
+fi
+
+if [[ -d $completions_directory ]]; then
+    while IFS= read -r completion_file
+    do
+        source "$completion_file"
+    done < <(find -- "$completions_directory" -maxdepth 1 -mindepth 1 -type f)
+fi
+
+unset completions_directory
+unset completion_file

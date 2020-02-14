@@ -1,0 +1,53 @@
+_trash()
+{
+    local cword=${COMP_CWORD}
+    local cur=${COMP_WORDS[${cword}]}
+    local prev=${COMP_WORDS[${cword}-1]}
+
+    local commands='put list restore help version --help --version'
+    if [[ $cword -eq 1 ]]; then
+        COMPREPLY=($(compgen -W "$commands" -- "$cur"))
+        return
+    fi
+
+    case "$prev" in
+        -d | --directory)
+            compopt -o filenames
+            COMPREPLY=($(compgen -W "$commands" -- "$cur"))
+            return
+            ;;
+    esac
+
+    local options='-d --direcotory --help --version'
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "$options" -- "$cur"))
+        return
+    fi
+
+    local command=${COMP_WORDS[1]}
+    case "$command" in
+        put)
+            compopt -o filenames
+            COMPREPLY=($(compgen -A file -- "$cur"))
+            return
+            ;;
+        list)
+            return
+            ;;
+        restore)
+            if [[ $cword == 2 ]]; then
+                local restore_files=
+                restore_files=$("$1" list | cut -d ' ' -f 2 | sed 's%^.*/%%' | uniq)
+                COMPREPLY=($(compgen -W "$restore_files" -- "$cur"))
+
+            elif [[ $cword == 3 ]]; then
+                local restorei_file_numbers=
+                restore_file_numbers=$("$1" list | sed 's%^.*/%%' | grep -F "$prev" | cut -d ' ' -f 2)
+                COMPREPLY=($(compgen -W "$restore_file_numbers" -- "$cur"))
+            fi
+            return
+            ;;
+    esac
+}
+
+complete -F _trash trash.sh
